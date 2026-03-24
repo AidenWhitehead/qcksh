@@ -3,8 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include "lexer.h"
-#include "builtin.h"
+#include "include/lexer.h"
+#include "include/builtin.h"
+#include "include/parser.h"
 
 #define BUF_SIZE 256
 
@@ -20,8 +21,9 @@ int main (void)
     fgets(buffer, sizeof(buffer), stdin);
     args = lexer(buffer, sizeof(buffer));
 
-    if (args == NULL || args[0] == NULL)
-      continue;
+    if (args == NULL || args[0] == NULL) continue;
+
+    if (parse(args) != 0) continue;
 
     if (ckbuiltins(args) != 0) {
       pid = fork();
