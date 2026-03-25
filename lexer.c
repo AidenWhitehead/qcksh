@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "include/lexer.h"
 
 #define BUF_SIZE 256
 #define IN 1
@@ -8,66 +10,95 @@
 
 void truncsp (char buffer[]);
 int numtokens (char buffer[]);
-char **lexer (char buffer[], int size);
 
-/* Returns an array of character pointers. */
-char **lexer (char buffer[], int size)
+/* Returns a lexed form of buffer as an array of character pointers.
+   Uses all space characters as separator characters.  Leaves quoted
+   text untouched. */
+token_t **lexer (char buffer[], int size)
 {
-  int i, tokens;
-  char **lexed, *token;
-  char sep[] = " \t\n\v\f\r";
+  int i, tokens, len;
+  char *current, *start, *end;
+  token_t **lexed;
 
-  truncsp(buffer);
   tokens = numtokens(buffer);
   
-  lexed = malloc((tokens + 1) * sizeof(char *));
+  lexed = malloc((tokens + 1) * sizeof(token_t *));
   if (lexed == NULL) return NULL;
-  
-  token = strtok(buffer, sep);
 
-  for (i = 0; token != NULL && i < tokens;) {
-    lexed[i++] = token;
-    token = strtok(NULL, sep);
+  i = 0;
+  current = buffer;
+  while (*current != '\0') {
+    /* Strip the leading whitespace, and break if the entire command is
+       just whitespace. */
+    while (*current != '\0' && isspace(*current))
+      current++;
+    if (*current == '\0') break;
+
+    start = current;
+    if (*current == '\'') {
+      start++;
+      current++;
+      while (*current != '\0' && *current != '\'')
+	current++;
+      end = current;
+      if (*current == '\'') current++; /* Don't get stuck on closing. */
+      if (*current == '\0') {
+	fprintf(stderr, "Unmatched \'!");
+	break;
+      }
+    } else {
+      while (*current && !isspace(*current))
+	current++;
+      end = current;
+    }
+    lexed[i] = malloc(sizeof(token_t));
+    if (lexed[i] == NULL) return NULL;
+    len = end - start;
+    lexed[i]->value = malloc(len + 1);
+    memcpy(lexed[i]->value, start, len);
+    lexed[i]->value[len] = '\0';
+    i++;
   }
 
-  lexed[i] = NULL;
+  lexed[i] = NULL; /* Insert NULL at the end of args */
 
   return lexed;
 }
 
-/* Remove repeated whitespaces, replace them with single spaces. */
-void truncsp (char str[])
-{
-  int lastsp;
-  char *src = str;
-  char *dst = str;
-
-  lastsp = 0;
-  while (*src != '\0') {
-    if (isspace(*src)) {
-      if (lastsp == 0) {
-	*dst++ = ' ';
-	lastsp = 1;
-      }	
-    } else { 
-      *dst++ = *src;
-      lastsp = 0;
-    }
-    src++;
-  }
-  *dst = '\0';
-}
-
-/* Count the number of tokens, return that value. */
 int numtokens (char buffer[])
 {
-  int i, tokens, state;
-
-  state = OUT; /* If start is IN, then first token not counted. */
-  for (i = tokens = 0; buffer[i] != '\0'; i++) {
-    if (isspace(buffer[i])) state = OUT;
-    else if (state == OUT && !isspace(buffer[i])) ++tokens;
+  int count = 0;
+  char *c = buffer;
+  while (*c) {
+    while (*c && isspace(*c)) c++;
+    if (*c == '\0') break;
+    count++; 
+    if (*c == '\'') {
+      c++; 
+      while (*c && *c != '\'') c++; 
+      if (*c == '\'') c++; 
+    } else {
+      while (*c && !isspace(*c)) c++;
+    }
   }
+  return count;
+}
 
-  return tokens;
+char *strdup (const char *str)
+{
+  char *dup = malloc(strlen(str) + 1);
+  if (dup == NULL) return NULL;
+  strcpy(dup, str);
+  return dup;
+}
+
+void freelex (token_t **lexed)
+{
+  int i;
+  
+  for (i = 0; lexed[i] != NULL; i++) {
+    free(lexed[i]->value);
+    free(lexed[i]);
+  }
+  free(lexed);
 }

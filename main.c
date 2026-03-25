@@ -1,19 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "include/lexer.h"
 #include "include/builtin.h"
 #include "include/parser.h"
+#include "include/executor.h"
 
 #define BUF_SIZE 256
+
+void print_ast(struct astnode *node, int level);
 
 int main (void)
 {
   char buffer[BUF_SIZE];
-  char **args;
-  pid_t pid;
+  token_t **args;
+  struct astnode *root;
 
   while (1) {
     printf("$ ");
@@ -23,24 +24,48 @@ int main (void)
 
     if (args == NULL || args[0] == NULL) continue;
 
-    if (parse(args) != 0) continue;
+    root = parse(args);
+    /* print_ast(root, 0); */
 
-    if (ckbuiltins(args) != 0) {
-      pid = fork();
-      if (pid < 0) {
-	perror("fork");
-	return 1;
-      } else if (pid == 0) {
-	execvp(args[0], args);
-	perror("execvp");
-	return 1;
-      } else {
-	wait(NULL);
-      }
-    }
+    execute(root);
 
-    free(args);
+    freelex(args);
+    freeast(root);
   }
   
   return 0;
+}
+
+void print_ast(struct astnode *node, int level) {
+  int i;
+  if (node == NULL) return;
+  
+  for (i = 0; i < level; i++) printf("  ");
+
+  switch (node->type) {
+  case NODE_PIPE:
+    printf("PIPE (|)\n");
+    break;
+  case NODE_REDIR_RIGHT:
+    printf("REDIR (>)\n");
+    break;
+  case NODE_REDIR_LEFT:
+    printf("REDIR (<)\n");
+    break;
+  case NODE_SEPARATOR:
+    printf("SEPARATOR (;)\n");
+    break;
+  case NODE_CMD:
+    printf("CMD: ");
+    if (node->args) {
+      for (i = 0; node->args[i] != NULL; i++) {
+	printf("%s ", node->args[i]);
+      }
+    }
+    printf("\n");
+    break;
+  }
+
+    print_ast(node->left, level + 1);
+    print_ast(node->right, level + 1);
 }
