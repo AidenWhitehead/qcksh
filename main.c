@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
 #include "include/lexer.h"
 #include "include/parser.h"
 #include "include/executor.h"
@@ -19,7 +20,10 @@ int main (void)
   while (1) {
     signal(SIGINT, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
-    printf("$ ");
+    
+    if (getuid() == 0)
+      printf("# ");
+    else printf("$ ");
     
     fgets(buffer, sizeof(buffer), stdin);
     args = lexer(buffer, sizeof(buffer));
