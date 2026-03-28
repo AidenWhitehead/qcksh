@@ -1,0 +1,27 @@
+                               QCK SHELL
+                               =========
+			  by Aiden Whitehead
+			  ------------------
+			  
+This is Qck Shell, a simple (terrible) toy shell I have been making in
+order to teach myself UNIX syscalls, to improve my knowledge of the C
+programming language, and to figure out how to use git.
+
+Qck Shell is intended to eventually implement most of the functionality
+of the Bourne shell (as if the world needs yet another clone of the
+Bourne shell), but I have not strayed away from significantly
+simplifying and changing what Bourne shell does when I am unable to
+think of a good way to implement what the Bourne shell does.  For
+example, one of the most significant changes is that, unlike the true
+Bourne shell which doesn't care how you type your pipes/redirects/etc.
+(i.e., "foo|bar", "foo |bar", etc.), Qck Shell (at least in its current
+state) requires that all tokens be separated by whitespace (i.e., only
+"foo | bar", nothing else).
+
+If anyone happens to look at this repo and sees anything that I did
+incorrectly/poorly, I will graciously accept any criticism whatsoever.
+I know for a fact that much of what I have done has not been done in
+the best (or even a correct) manner, so I welcome the chance to be
+corrected on the errors I made.
+
+Thank you for reading!
