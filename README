@@ -1,7 +1,7 @@
                                QCK SHELL
                                =========
-			  by Aiden Whitehead
-			  ------------------
+                         by Aiden Whitehead
+                         ------------------
 			  
 This is Qck Shell, a simple (terrible) toy shell I have been making in
 order to teach myself UNIX syscalls, to improve my knowledge of the C
