@@ -23,7 +23,7 @@ builtin_t builtins[] = {
 
 /* If it is a builtin, handle the execution and return 0.  Otherwise,
    return 1. */
-int ckbuiltins (char **args)
+int builtin (char **args)
 {
   int (*ptr)(char **);
   int i;

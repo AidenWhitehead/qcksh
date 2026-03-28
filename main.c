@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include "include/lexer.h"
-#include "include/builtin.h"
 #include "include/parser.h"
 #include "include/executor.h"
 
@@ -17,6 +17,8 @@ int main (void)
   struct astnode *root;
 
   while (1) {
+    signal(SIGINT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
     printf("$ ");
     
     fgets(buffer, sizeof(buffer), stdin);
@@ -25,7 +27,6 @@ int main (void)
     if (args == NULL || args[0] == NULL) continue;
 
     root = parse(args);
-    /* print_ast(root, 0); */
 
     execute(root);
 
